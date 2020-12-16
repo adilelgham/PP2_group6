@@ -2,7 +2,7 @@ FROM php:fpm-alpine
 WORKDIR /PP2_group6/pp2_group6
 COPY . /PP2_group6/pp2_group6
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN useradd -G www-data,root -u 1000 -d /home/student student
+RUN adduser -G www-data,root -u 1000 -d /home/student student
 RUN mkdir -p /home/student/.composer && \
     chown -R student:student /home/student
 CMD ["php", "artisan", "serve"]
