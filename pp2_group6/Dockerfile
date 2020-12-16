@@ -5,6 +5,7 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 RUN adduser -D -u 1000 student
 RUN mkdir -p /home/student/.composer && \
     chown -R student:student /home/student
+RUN composer install
 RUN apt-get update && apt-get install -y --force-yes \
     freetds-dev \
     libicu-dev \
@@ -24,6 +25,6 @@ RUN apt-get update && apt-get install -y --force-yes \
     pdo_mysql \
     pdo_pgsql \
     zip
-RUN composer install
+
 
 CMD ["php", "artisan", "serve"]
