@@ -1,4 +1,4 @@
-FROM php:fpm-alpine
+FROM php:7.4-fpm
 WORKDIR /PP2_group6/pp2_group6
 COPY . /PP2_group6/pp2_group6
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
