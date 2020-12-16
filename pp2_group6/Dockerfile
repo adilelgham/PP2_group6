@@ -6,5 +6,8 @@ RUN adduser -D -u 1000 student
 RUN mkdir -p /home/student/.composer && \
     chown -R student:student /home/student
 RUN composer install
+RUN apt-get update && apt-get upgrade -y && \
+    apt-get install -y nodejs \
+    npm    
 RUN npm install
 CMD ["php", "artisan", "serve"]
