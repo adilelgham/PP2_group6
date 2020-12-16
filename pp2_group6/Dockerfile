@@ -6,4 +6,5 @@ RUN adduser -D -u 1000 student
 RUN mkdir -p /home/student/.composer && \
     chown -R student:student /home/student
 RUN composer install
+RUN npm install
 CMD ["php", "artisan", "serve"]
