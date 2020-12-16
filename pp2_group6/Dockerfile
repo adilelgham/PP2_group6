@@ -1,10 +1,9 @@
-FROM php:7
-RUN apt-get update -y && apt-get install -y openssl zip unzip git
-RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
-RUN docker-php-ext-install pdo mbstring
+FROM php:fpm-alpine
 WORKDIR /PP2_group6/pp2_group6
 COPY . /PP2_group6/pp2_group6
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+RUN adduser -D -u 1000 student
+RUN mkdir -p /home/student/.composer && \
+    chown -R student:student /home/student
 RUN composer install
-
-CMD php artisan serve --host=127.0.0.1 --port=8000
-EXPOSE 8000
+CMD ["php", "artisan", "serve"]
