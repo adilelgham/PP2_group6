@@ -6,5 +6,5 @@ WORKDIR /PP2_group6/pp2_group6
 COPY . /PP2_group6/pp2_group6
 RUN composer install
 
-CMD php artisan serve --host=0.0.0.0 --port=8000
+CMD php artisan serve --host=127.0.0.1 --port=8000
 EXPOSE 8000
