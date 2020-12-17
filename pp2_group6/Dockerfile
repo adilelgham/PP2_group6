@@ -2,7 +2,6 @@ FROM php:7.4-fpm
 WORKDIR /PP2_group6/pp2_group6
 COPY . /PP2_group6/pp2_group6
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-RUN composer install
 RUN apt-get update && apt-get install -y \
         libpng-dev \
         zlib1g-dev \
@@ -18,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install mysqli \
     && docker-php-ext-install zip \
     && docker-php-source delete
+RUN composer install
 
 
 CMD ["php", "artisan", "serve"]
