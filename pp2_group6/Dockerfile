@@ -18,8 +18,5 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install zip \
     && docker-php-source delete
 RUN composer install
-RUN apt install php-xml
-
-
 
 CMD ["php", "artisan", "serve"]
