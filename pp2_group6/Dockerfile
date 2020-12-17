@@ -6,25 +6,21 @@ RUN adduser -D -u 1000 student
 RUN mkdir -p /home/student/.composer && \
     chown -R student:student /home/student
 RUN composer install
-RUN apt-get update && apt-get install -y --force-yes \
-    freetds-dev \
-    libicu-dev \
-    libpq-dev \
-    libmcrypt-dev \
-    libpng-dev \
-    git \
- && rm -r /var/lib/apt/lists/* \
- && cp -s /usr/lib/x86_64-linux-gnu/libsybdb.so /usr/lib/ \
- && docker-php-ext-configure pdo_mysql --with-pdo-mysql=mysqlnd \
- && docker-php-ext-install \
-    gd \
-    mbstring \
-    mcrypt \
-    pcntl \
-    pdo_dblib \
-    pdo_mysql \
-    pdo_pgsql \
-    zip
+RUN apt-get update && apt-get install -y \
+        libpng-dev \
+        zlib1g-dev \
+        libxml2-dev \
+        libzip-dev \
+        libonig-dev \
+        zip \
+        curl \
+        unzip \
+    && docker-php-ext-configure gd \
+    && docker-php-ext-install -j$(nproc) gd \
+    && docker-php-ext-install pdo_mysql \
+    && docker-php-ext-install mysqli \
+    && docker-php-ext-install zip \
+    && docker-php-source delete
 
 
 CMD ["php", "artisan", "serve"]
