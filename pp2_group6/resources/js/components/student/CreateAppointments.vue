@@ -1,189 +1,308 @@
 <template>
-    <div>
-        <h2>Create an appointment</h2>
-        <b-form @submit="createAppointment(appointment)">
-            <b-form-group label="Insert your first name">
-                <b-form-input
-                    type="text"
-                    placeholder="First name"
-                    v-model="request.firstName">
-                </b-form-input>
-            </b-form-group>
 
-            <b-form-group label="Insert your last name">
-                <b-form-input
-                    type="text"
-                    placeholder="Last name"
-                    v-model="request.lastName">
-                </b-form-input>
-            </b-form-group>
+  <div>
+    <b-navbar variant="danger" type="dark" style="margin-bottom: 10%">
+      <b-navbar-brand href="http://127.0.0.1:8000/" class="mx-auto">
+        <img
+          src="/images/ehb_logo_white_horizontal.png"
+          class="d-inline-block align-top"
+          style="width: 100px; height: 25px"
+        />
+      </b-navbar-brand>
+    </b-navbar>
+    <b-container class="mx-auto">
+    <div class="d-flex justify-content-center" style="margin-top: 10%">
+      <div>
+        <b-form>
+          <check-email
+            v-if="showMailCheckComponent"
+            v-on:nameChecked="showDateForm"
+          ></check-email>
 
-            <b-form-group label="Choose between available secretary">
-                <b-form-radio-group
-                    v-model="request.user_id"
-                    buttons
-                    button-variant="danger">
-                    <template v-for="user in users">
-                        <b-form-radio :value="user.user_id" :key="user.user_id">
-                            {{ user.firstName + " " + user.lastName }}
-                        </b-form-radio>
-                    </template>
-                </b-form-radio-group>
-            </b-form-group>
+          <transition name="slide-fade">
+            <show-availabilities
+              :modify="modify"
+              v-if="showAvailabilityComponent"
+              :availabilities="availabilities"
+              v-on:availabilityChosen="availabilitySet"
+            ></show-availabilities>
+          </transition>
 
-            <b-form-group label="Choose a date">
-                <b-form-input
-                    type="date"
-                    placeholder="Date"
-                    v-model="request.date">
-                </b-form-input>
-            </b-form-group>
+          <transition name="slide-fade">
+            <show-subjects
+              v-if="showSubjectComponent"
+              v-on:subjectChosen="subjectSet"
+            ></show-subjects>
+          </transition>
 
-            <b-form-group label="Choose a date and time">
-                <b-form-input
-                    type="datetime-local"
-                    placeholder="Time"
-                    v-model="request.startsAt">
-                </b-form-input>
-            </b-form-group>
+          <transition name="slide-fade">
+            <modify-request
+              :student_firstName="request.firstName"
+              :student_lastName="request.lastName"
+              v-if="showModifyRequestComponent"
+              :request="request"
+              v-on:showAvailabilityEdit="editSecretary"
+              v-on:showSubjectEdit="editSubject"
+              v-on:showVerificationComp="askVerification"
+            ></modify-request>
+          </transition>
 
-            <b-form-group label="Choose a subject">
-                <b-form-radio-group
-                    v-model="request.subject"
-                    buttons
-                    button-variant="danger">
-                    <template v-for="subject in subjects">
-                        <b-form-radio :value="subject.name" :key="subject.subjectId">
-                            {{ subject.name }}
-                        </b-form-radio>
-                    </template>
-                </b-form-radio-group>
-            </b-form-group>
+          <transition name="slide-fade">
+            <verification-code
+              v-if="showVerificationComponent"
+              :student_firstName="request.firstName"
+              :student_lastName="request.lastName"
+              v-on:codeValidated="showCaptcha"
+            >
+            </verification-code>
+          </transition>
 
-            <b-button @click.prevent="createAppointment(request)">Make appointment</b-button>
+          <transition name="slide-fade">
+            <captcha
+              v-if="showCaptchaComponent"
+              v-on:captchaVerified="showSummary()"
+            >
+            </captcha>
+          </transition>
+
+          <transition name="slide-fade">
+            <request-summary
+              :student_firstName="request.firstName"
+              :student_lastName="request.lastName"
+              :request="request"
+              v-if="showSummaryComponent"
+            ></request-summary>
+          </transition>
+
+          <transition name="slide-fade">
+            <show-end-message
+            v-if="showEndMessageComponent"
+            > 
+             
+            </show-end-message>
+          </transition>
+
+          <b-button
+            variant="primary"
+            v-if="showSummaryComponent"
+            @click.prevent="createAppointment(request)"
+            >Make appointment</b-button
+          >
+          <b-button
+            v-if="showSummaryComponent"
+            @click.prevent="backToStartPage()"
+            >Cancel</b-button
+          >
         </b-form>
-
-        <br />
-        <hr />
-        <br />
-
-        <h4 class="text-center font-weight-bold">Confirm an Appointment</h4>
-        <div class="form-group">
-            <input
-                type="text"
-                placeholder="Appointment ID"
-                v-model="appointmentId"
-                class="form-control"
-            />
-        </div>
-        <div class="form-group">
-            <button
-                class="btn btn-block btn-primary"
-                @click.prevent="confirmAppointment(appointmentId)"
-            >
-                Confirm Appointment
-            </button>
-        </div>
-
-        <br />
-        <hr />
-        <br />
-
-        <h4 class="text-center font-weight-bold">Show an Appointment</h4>
-        <div class="form-group">
-            <input
-                type="text"
-                placeholder="Token"
-                v-model="token"
-                class="form-control"
-            />
-        </div>
-        <div class="form-group">
-            <button
-                class="btn btn-block btn-primary"
-                @click="showAppointment(token)"
-            >
-                Show Appointment
-            </button>
-        </div>
-
-        <div>
-            <pre> {{ output }} </pre>
-        </div>
+      </div>
     </div>
+    </b-container>
+    <footer
+      style="
+        height: 50px;
+        background-color: #dc3545;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      "
+    >
+      <p style="padding-top: 13px; color: white">
+        &copy; Copyright 2020 | PP2 - Group 6
+      </p>
+    </footer>
+  </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
+import checkEmail from "./checkEmail.vue";
+import ShowSubjects from "./ShowSubjects.vue";
+import VerificationCode from "./VerificationCode.vue";
+import ModifyRequest from "./ModifyRequest.vue";
+import VueRecaptcha from "vue-recaptcha";
+import Captcha from "./Captcha.vue";
+import requestSummary from "./RequestSummary.vue";
 export default {
-    name: "CreateAppointment",
-    data() {
-        return {
-            appointment: {
-                appointmentId: "",
-                student_id: "",
-                user_id: "",
-                date: "",
-                startsAt: "",
-                subject: ""
-            },
-            request: {
-                appointmentId: "",
-                student_id: "",
-                firstName: "",
-                lastName: "",
-                user_id: "",
-                date: "",
-                startsAt: "",
-                subject: "",
-            },
-            user: {
-              firstName: "",
-              lastName: ""
-            },
-            subject: {
-              name: "",
-              duration: ""
-            },
-            output: "",
-            appointmentId: "",
-            token: ""
-        };
+  components: {
+    checkEmail,
+    ShowSubjects,
+    VerificationCode,
+    ModifyRequest,
+    Captcha,
+  },
+  name: "CreateAppointment",
+  props: ["firstName", "lastName"],
+  data() {
+    return {
+      appointment: {
+        appointmentId: "",
+        student_id: "",
+        user_id: "",
+        date: "",
+        startsAt: "",
+        subject: "",
+      },
+      request: {
+        student_id: "",
+        firstName: "",
+        lastName: "",
+        user_id: "",
+        date: "",
+        startsAt: "",
+        subject: "",
+      },
+      output: "",
+      selectedSecretary: "",
+      availabilities: {},
+      chosenTime: "",
+      appointmentId: "",
+      token: "",
+      showVerificationComponent: false,
+      showMailCheckComponent: true,
+      showAvailabilityComponent: false,
+      showSubjectComponent: false,
+      showModifyRequestComponent: false,
+      showSubmitComponent: false,
+      showCaptchaComponent: false,
+      showSendRequestButton: false,
+      modify: false,
+      showSummaryComponent: false,
+      showEndMessageComponent: false,
+    };
+  },
+  methods: {
+    backToStartPage() {
+      //This function redirects the student to the start page.
+      window.location.href = "/";
     },
-    methods: {
-        createAppointment(request) {
+    showSummary() {
+      //Hide captcha component
+      this.showCaptchaComponent = false;
 
-          let currentObj = this;
-            this.$store.dispatch("createAppointment" , request);
-        },
-        confirmAppointment(appointmentId) {
-            //Declare needed Variables
-            let currentObj = this;
-
-            //Axios call [POST]
-            axios
-                .get("appointment/confirm/" + appointmentId)
-                .then(function(response) {
-                    //This.output gets filled with the response data.
-                    currentObj.output = response.data;
-                })
-                .catch(function(error) {
-                    //This output gets filled with error message.
-                    currentObj.output = error;
-                });
-            window.location.reload();
-        },
-        showAppointment(token) {
-            //Declare needed Variables
-            let currentObj = this;
-
-            window.location.href = "appointment/token/" + token;
-        }
+      //Show appointment request button
+      this.showSummaryComponent = true;
     },
-    computed: {
-        ...mapGetters([
-          'users',
-          'subjects'
-        ])
-    }
+    editSecretary(value) {
+      //hide modify component
+      this.showModifyRequestComponent = false;
+      this.modify = true;
+
+      //show availability
+      this.showAvailabilityComponent = true;
+    },
+    editSubject(value) {
+      //show subject component
+      this.showSubjectComponent = true;
+
+      //hide modify component
+      this.showModifyRequestComponent = false;
+    },
+    createAppointment(request) {
+      let currentObj = this;
+      
+      this.showEndMessageComponent = true;
+      this.showCaptchaComponent = false;
+      this.showSummaryComponent = false;
+      this.$store.dispatch("createAppointment", request);
+    },
+    availabilitySet(availabilityRequest) {
+      //Extract data from child component [show availabilitie] & store them in local request object for later POST call.
+      this.request.date = availabilityRequest.date;
+      this.request.user_id = availabilityRequest.user_id;
+      this.request.startsAt = availabilityRequest.startsAt;
+
+      //hide availability component
+      this.showAvailabilityComponent = false;
+      //Show next component.
+      this.showSubjectComponent = true;
+    },
+    showDateForm: function (value) {
+      if (value[0] === 1) {
+        //console.log(value[1].firstName);
+        //Store first name & last name locally.
+        this.request.firstName = value[1].firstName;
+        this.request.lastName = value[1].lastName;
+
+        //Hide name input
+        this.showMailCheckComponent = false;
+
+        //show availability component
+        this.showAvailabilityComponent = true;
+
+        //Jump to next component
+        //this.currentComponent = "show-availabilities"
+      }
+    },
+    askVerification() {
+      //Hide modify-request component.
+      this.showModifyRequestComponent = false;
+
+      //Show verification code component.
+      this.showVerificationComponent = true;
+    },
+    subjectSet(chosenSubject) {
+      //Extract data from child component [show availabilitie] & store them in local request object for later POST call
+      this.request.subject = chosenSubject;
+
+      //Hide this component
+      this.showSubjectComponent = false;
+
+      //Show next component
+      this.showModifyRequestComponent = true;
+    },
+    showCaptcha(value) {
+      //Hide verification code component
+      this.showVerificationComponent = false;
+
+      //Show captcha component
+      this.showCaptchaComponent = true;
+    },
+  },
+  watch: {
+    selectedSecretary: function (newSecretary) {
+      //watch the changes on selection of secretary. This function gets executed everytime a different secretary is selected.
+      //Set this secretary equal to the new one.
+      this.selectedSecretary = newSecretary;
+
+      //Isolate secretary Id from radio buttons. (Button value is not the name but the ID of the secretary.)
+      let secretaryId = newSecretary;
+
+      //Axios Call [POST] with secretary Id & selected date, which will return the availabilities of that secretary.
+      axios
+        .post("availabilities/", {
+          secretaryId: secretaryId,
+          date: this.request.date,
+        })
+        .then((response) => (this.availabilities = response.data))
+        .catch((error) => console.log(error));
+
+      //set local property 'availabilities' equal to the axios response (containing all availabilities).
+      this.$props.availabilities = this.availabilities;
+    },
+  },
+  computed: {
+    //These are mapgetters returned from the functions (using vueX library) located at store/actions.js
+    ...mapGetters(["users", "subjects"]),
+  },
 };
 </script>
+
+<style scoped>
+.slide-fade-enter-active {
+  transition: all 0.8s ease;
+}
+.slide-fade-leave-active {
+  transition: all 0.5s cubic-bezier(1, 0.5, 0.8, 1);
+}
+.slide-fade-enter, .slide-fade-leave-to
+/* .slide-fade-leave-active below version 2.1.8 */ {
+  transform: translateX(10px);
+  opacity: 0;
+}
+
+#navbar .navbar-logo{
+   
+    width: 150px;
+  
+}
+</style>

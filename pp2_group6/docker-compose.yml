@@ -1,14 +1,23 @@
-version: "3.7"
+version: '3.5'
+
 services:
-  app:
+  laravel-app:
     build:
+      context: '.'
       args:
-        user: student
-        uid: 1000
-      context: ./
-      dockerfile: Dockerfile
-    image: adileg/pp2_group_6
-    ports: - "80:80"
-    container_name: laravel-docker
-    restart: always
-    working_dir: /PP2_group6/pp2_group6
+        uid: ${UID}
+    container_name: laravel-app
+    environment:
+      - APACHE_RUN_USER=#${UID}
+      - APACHE_RUN_GROUP=#${UID}
+    volumes:
+      - .:/var/www/html
+    ports:
+      - 8080:80
+    networks:
+      backend:
+        aliases:
+          - laravel-app
+networks:
+  backend:
+    name: backend-network

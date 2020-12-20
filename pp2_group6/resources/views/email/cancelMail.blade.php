@@ -6,13 +6,21 @@
     <title>Cancel Mail</title>
 </head>
 <body>
-    <h1>Dear {{ $cancel ['name'] }} {{ $cancel ['lastname'] }}</h1>
+    <h3>Dear {{$cancel['name']}},</h3>
 
-    <p> Your appointment on {{$cancel['appoint']}} has been cancelled. For the next reason's: {{$cancel['description']}}</p>
+    <p> I have an appointment with you scheduled on <strong>{{$cancel['appointment']}}</strong>. </p>
 
-    <p> You can take a new appointment online</p>
+   <p>Unfortunately, I must cancel the appointment for the next reason : <strong>{{$cancel['description']}}</strong> 
+   <br><br>
+
+   I will be grateful if we can reschedule for a future date. 
+   You can schedule a new appointment on this website : www.localhost:8000/
+   <br>
+   </p>
 
 
-    <p>The secretary </p>
+    <p>The secretary</p>
+    <p>{{$cancel['secretary']}} </p>
+
 </body>
 </html>

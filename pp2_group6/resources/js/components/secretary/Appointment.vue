@@ -1,97 +1,147 @@
 <template>
-  <div>
-    <b-navbar toggleable type="dark" variant="dark">
-      <b-navbar-brand href="#"
-        ><img src="/img/logo.jpg" width="50" height="40"
-      /></b-navbar-brand>
+  <div id="template">
+    <navbar></navbar>
+    <div id="titel">
+      <h1>
+        {{ title }}
+      </h1>
+    </div>
+    <div id="table">
+      <div v-if="cancelIsClicked">
+        <textarea name="reason" placeholder="Describe the reason why you cancel the appointment" id="reason" cols="125" rows="3" value="description" v-model="description">
+          Reason why you cancel
+        </textarea>
+      </div>
+      <div v-if="cancelIsClicked">
+        <b-button id="confirm" type="button" @click="cancelAppointmentSubmit()">
+          Confirm cancel
+        </b-button>
+      </div>
 
-      
-
-      <b-collapse id="navbar-toggle-collapse" is-nav>
-        <b-navbar-nav class="ml-auto">
-          <b-nav-item href="#">Link 1</b-nav-item>
-        </b-navbar-nav>
-      </b-collapse>
-    </b-navbar>
-
-    <h1>{{ title }}</h1>
-
-    <br>
-
-    <hr>
-    <b-button pill variant="primary">Add/Import iCal</b-button>
-
-    <br>
-
-    <hr>
-    <div>
       <table class="table table-stripped table-bordered">
-        <thead class="thead-dark">
-          <tr>
-
-            <th scope="col">DATE TIME</th>
-            <th scope="col">STUDENT</th>
-            <th scope="col">SUBJECT</th>
-            <th scope="col">ACTION</th>
-
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            v-for="appointment in appointments"
-            :key="appointment.appointmentId"
+        <tr
+          v-for="appointment in appointments"
+          :key="appointment.appointmentId"
+        >
+          <th>{{ appointment.date }} {{ appointment.startsAt }}</th>
+          <th>{{ appointment.firstName }} {{ appointment.lastName }}</th>
+          <th>{{ appointment.subject }}</th>
+          <b-button
+            variant="danger"
+            @click="showTextArea(appointment.appointmentId)"
+            >Cancel</b-button
           >
-            <th>{{ appointment.startsAt }}</th>
-            <th>{{ appointment.firstName }} {{ appointment.lastName }}</th>
-            <th>{{ appointment.subject }}</th>
-            <th>
-              <cancelappointment
-                v-bind:id="appointment.appointmentId"
-              ></cancelappointment>
-            </th>
-
-            <!--  v-bind:id="appointment.appointmentId" -->
-          </tr>
-        </tbody>
+        </tr>
         <!--<pagination :data="appointments" @pagination-change-page="getResults"></pagination> -->
       </table>
     </div>
+    <br />
 
-    <div >
-      <b-button squared variant="outline-danger">Back</b-button>
-      
-    </div>
-    <div>
+    <div id="button-alert">
       <alert></alert>
+    </div>
+    <div id="button-back">
+      <b-button
+        @click="backbutton"
+        class="button button-close"
+        squared
+        variant="outline-danger"
+        >Back</b-button
+      >
     </div>
   </div>
 </template>
 
 <script>
-
 export default {
-  props: ["id", "data", "myId"],
   data() {
     return {
       title: "Manage Appointments",
       appointments: "",
+      description: "",
+      output: "",
+      id: "",
+      cancelIsClicked: false,
+      currentAppointmentId: "",
     };
+  },
+  mounted() {
+    axios.get("/api/user").then((res) => {
+      this.user = res.data;
+    });
+    console.log("Component mounted.");
   },
   created() {
     axios
-      .get('/secretary/appointmentLists')
+      .get("/api/appointmentListConfirmed")
       .then((response) => (this.appointments = response.data))
       .catch((error) => console.log(error));
   },
   methods: {
-    getResults(page = 1) {
-      axios.get("secretary/appointmentList?page=" + page).then((response) => {
-        this.appointments = response.data;
-      });
+    showTextArea(newAppointmentId) {
+      this.currentAppointmentId = newAppointmentId;
+      this.cancelIsClicked = true;
+    },
+    backbutton() {
+      this.$router.push({ name: "dashboard" });
+    },
+    cancelAppointmentSubmit() {
+      let currentObj = this;
+      let id = this.currentAppointmentId;
+      axios
+        .post("/api/cancelAppointment/" + id, {
+          description: this.description,
+        })
+        .then(function (response) {
+          currentObj.output = response.data;
+          
+        })
+        .catch(function (error) {
+          currentObj.output = error;
+        });
+
+      this.cancelIsClicked = false;
+      window.location.reload();
     },
   },
 };
 </script>
+
+<style scoped>
+#confirm{
+  float: right;
+}
+#template {
+  background-color: #bababa;
+}
+#table {
+  height: 80%;
+  width: 75%;
+  background-color: white;
+  border: 2px solid black;
+  border-radius: 12px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: auto;
+  height: 400px;
+}
+#buttons {
+  margin: 0;
+}
+#button-back {
+  text-align: center;
+  margin-left:60px;
+
+}
+#button-alert {
+  float: right;
+}
+h1{
+    text-align: center;
+    font-size:50px; 
+    font-family:Georgia;
+}
+</style>
 
 
 

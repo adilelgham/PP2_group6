@@ -8,10 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class Availability extends Model
 {
     use HasFactory;
+    protected $primaryKey = 'avId';
 
-
+    public $timestamps = false;
+    protected $dateFormat = 'H:i:s';
     public function users () {
 
         return $this->belongsTo(User::class);
     }
+    protected $fillable = ['avId','user_id','date','time','status'];
+
 }

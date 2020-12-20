@@ -1,59 +1,93 @@
 <template>
-    <div :is=currentComponent>
+  <div>
+    <b-navbar
+      variant="danger"
+      type="dark"
+      style="margin-bottom: 10%; margin-bottom: 0px"
+    >
+      <b-navbar-brand href="http://127.0.0.1:8000/">
+        <img
+          src="/images/ehb_logo_white_horizontal.png"
+          class="d-inline-block align-top"
+          style="width: 100px; height: 25px"
+        />
+      </b-navbar-brand>
+    </b-navbar>
+    <b-jumbotron style="height: 100%">
+      <h2>{{ check }}</h2>
 
-        <div>
-        <!-- Message: Says if appointment is found -->
-        <h1> {{ check }}</h1>
-        
-        <!-- Show appointment data -->
-        <p>Appointment ID: {{ appointmentId }} </p>
-        <p>Student ID: {{ student_id }} </p>
-        <p>User ID: {{ user_id }} </p>
-        <p>Date: {{ date }} </p>
-        <p>Starts At: {{ startsAt }} </p>
-        <p>Subject: {{ subject }} </p>
-        <p>Status: {{ status }} </p>
-        <p>Token: {{ cancelToken }} </p>
+      <template #lead>
+        You can cancel the appointment below. If all the
+        information is correct just exit the page.
+      </template>
+      <!-- Show appointment data -->
+      <p>
+        With: <strong>{{ secretaryName }}</strong>
+      </p>
+      <p>
+        Took by : <strong>{{ studentName }}</strong>
+      </p>
+      <p>
+        Date: <strong>{{ date }}</strong>
+      </p>
+      <p>
+        Starts At: <strong>{{ startsAt }}</strong>
+      </p>
+      <p>
+        Subject: <strong>{{ subject }}</strong>
+      </p>
+      <p>
+        Status: <strong>{{ status }}</strong>
+      </p>
 
-    <!-- Update page component, gets called only if property "currentCOmponent" = name of this component -->
-    <update-page :is=currentComponent > </update-page>
+      <!-- Show update page button -->
+      <!-- Call to cancel appointment method button-->
 
-
-    <pre> {{ output }} </pre>
-    
-    <!-- Show update page button -->
-    <button type="button" class="btn btn-block btn-primary" @click="showUpdateComponent()">Update Appointment Request</button>
-    <!-- Call to cancel appointment method button-->
-    <button type="button" class="btn btn-block btn-primary" @click="cancelAppointment(appointmentId)">Cancel Appointment </button>
-    </div>
-
-
-    </div>
+      <!-- Show update page button -->
+      <!-- Call to cancel appointment method button-->
+      <b-button
+        v-if="status != 'refused'"
+        type="button"
+        @click="cancelAppointment(appointmentId)"
+      >
+        Cancel Appointment
+      </b-button>
+    </b-jumbotron>
+    <footer
+      style="
+        height: 50px;
+        background-color: red;
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+      "
+    >
+      <p style="padding-top: 13px; color: white">
+        &copy; Copyright 2020 | PP2 - Group 6
+      </p>
+    </footer>
+  </div>
 </template>
 
 <script>
-import updatePage from './updatePage.vue';
 
 
-export default{
-  components: { updatePage },
-    props: [
-        'check',
-        'appointmentId',
-        'student_id',
-        'user_id',
-        'date',
-        'startsAt',
-        'subject',
-        'status',
-        'cancelToken',
-    ],
-    
-    data() {
-        return{
-            output : '',
-            currentComponent: 'div',
-            appointment: {
+export default {
+  
+  props: [
+    "appointmentId",
+    "check",
+    "studentName",
+    "secretaryName",
+    "date",
+    "startsAt",
+    "subject",
+    "status",
+  ],
+  data() {
+    return {
+      appointment: {
         appointmentId: "",
         student_id: "",
         user_id: "",
@@ -61,50 +95,35 @@ export default{
         startsAt: "",
         subject: "",
       },
-            
-        }
-        
+    };
+  },
+  methods: {
+    cancelAppointment(appointmentId) {
+      //Declaring needed variables
+      let thisResponse = "";
+      let currentObject = this;
+
+      //Axios call to delete an appointment from DB.
+      axios
+        .delete("/appointment/cancel/" + appointmentId)
+        .then(function (response) {
+          //Set local response variable equal to axios response.
+          console.log("cancel response:", response.data);
+          if (response.data === 1) {
+            //If delete query returned true, alert the user & redirect to home page.
+            alert("Appointment has been canceled successfully!");
+            window.location.href = "/";
+          } else {
+            //Appointment doesn't exist.
+            console.log(
+              "Error. The appointment you are trying to cancel may not exist anymore."
+            );
+          }
+        })
+        .catch(function (error) {
+          console.log(error);
+        });
     },
-    
-    methods:  {
-        cancelAppointment(appointmentId) {
-            let thisResponse ="";
-            let currentObject = this;
-            axios.delete('/appointment/cancel/' + appointmentId)
-            .then(function (response) {
-                    currentObject.output = response.data;
-
-                    this.thisResponse = response.data;
-
-                }).catch(function (error) {
-                    //
-                });
-
-                if(this.thisResponse = 1){
-
-                    //If delete query returned true, redirect to home page.
-                    window.location.href = "/" 
-                }
-                else{
-
-                    currentObject.output = "Error. Maybe the appoint you are trying to cancel doesn't exist anymore ?";
-                }
-                
-        },
-        showUpdateComponent (){
-
-
-            //Check current component name and change it accordingly.
-            if(this.currentComponent === 'div') {
-                this.currentComponent = 'updatePage';
-            }
-            else if (this.currentComponent === 'updatePage') 
-            {
-                this.currentComponent = 'div';
-            }
-            
-        }
-
-    }
-}
+  },
+};
 </script>
